@@ -29,8 +29,10 @@ Method OnTask() As %Status
 ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String) As %Status
 {
 	Set tSC=$$$OK
-	Set tFilename = ""
-	Set tTitle = ""
+	
+	Set tFilename = ""	// empty string to be initalized with resulting filename derived from ResultSet of queried pivot table
+	Set tTitle = ""		// empty string to be initalized with title of ResultSet of queried pivot table, **may remove, depending on formatting**
+	
 	Set mdx=##class(%DeepSee.Utils).%GetMDXFromPivot(pPivot,.tSC,0)
 	
 	// Execute MDX to see if there are results
@@ -84,7 +86,30 @@ ClassMethod SendEmail(pPivot As %String, pEmails As %String, pFormat As %String)
 		Set msg.IsHTML=1 // Set IsHTML to 1 if email uses HTML
 		
 		If tHasResults {
+			/* Set file = "C://test.txt"
+			Open file:"nws"
+			Use file
+			// READ buffer
+			// call utility print method of DeepSee to ResultSet, printing to console
+			Set printStatus = tRS.%Print()
+			Close file */
+			
 			Do msg.TextData.WriteLine("Attached is the requested Pivot.")
+			/* If buffer '= "" {
+				Do msg.TextData.Write(buffer)
+			} Else {
+				Do msg.TextData.WriteLine("Graph failed to be saved.")
+				If printStatus = 1 {
+					Do msg.TextData.WriteLine("But it successfully wrote.")
+				}
+			}*/
+			
+			Set stream=##class(%Stream.FileCharacter).%New()
+			Set sc=stream.LinkToFile(tFilename)
+			While 'stream.AtEnd {
+				Set line=stream.Read()
+				Do msg.TextData.WriteLine(line)
+			}
 			
 			// Add attachment
 			Set status=msg.AttachFile("",tFilename)
