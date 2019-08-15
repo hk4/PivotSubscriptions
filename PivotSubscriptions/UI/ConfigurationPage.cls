@@ -12,14 +12,19 @@ XData contentPane [ XMLNamespace = "http://www.intersystems.com/zen" ]
 {
 <pane xmlns="http://www.intersystems.com/zen">
 <hgroup valign="top" >
-<spacer width="20" />
+<spacer width="24" />
 <vgroup valign="top" >
-<spacer height="20" />
+<spacer height="24" />
 
 <label id="AdminEmailLabel" label="" />
 <text id="AdminEmailText" clientType = "string" />
 
 <spacer height="16" />
+
+<label id="LinkTitle" label="" />
+<label id="LinkLabel" label="" />
+
+<spacer height = "16" />
 
 <label id="HTTPLabel" label="" />
 <radioSet id="HTTPButton" 
@@ -84,6 +89,10 @@ Method %OnAfterCreatePage() As %Status
 		Set ..%GetComponentById("PortText").value = ^PivotSubscriptions.Settings("Port")
 	}
 	
+	Set ..%GetComponentById("LinkTitle").value = $$$TextJS("Preview of Link:")
+	Do ##class(PivotSubscriptions.Utility).GenerateLink(.link)
+	Set ..%GetComponentById("LinkLabel").value = link
+	
 	Quit $$$OK
 }
 
@@ -95,11 +104,20 @@ ClientMethod ButtonClick() [ Language = javascript ]
 		var server=zen('ServerText').getValue();
 		var port=zen('PortText').getValue();
 		
+		zen('LinkLabel').setValue(zenPage.GetURL());
+		
 		var status=zenPage.SaveConfiguration(adminemail,http,server,port);
 	}
 	catch(ex) {
 		zenExceptionHandler(ex,arguments);
 	}
+}
+
+Method GetURL() As %String [ ZenMethod ]
+{
+	Set tSC = ##class(PivotSubscriptions.Utility).GenerateLink(.link)
+	If $$$ISERR(tSC) { Quit tSC }
+	Quit link
 }
 
 Method SaveConfiguration(pAdminEmail, pHttp, pServer, pPort) As %Status [ ZenMethod ]
